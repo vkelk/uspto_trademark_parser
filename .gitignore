@@ -102,3 +102,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# VSCode
+.vscode
+/logs
+/work_dir
