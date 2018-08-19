@@ -31,3 +31,10 @@ def get_host_from_url(url):
     base_url = "{0.scheme}://{0.netloc}/".format(urlsplit(url))
     return base_url
 
+
+def get_text_or_none(element, item_name):
+    item = element.xpath(item_name)
+    if len(item) > 0:
+        return str(item[0])
+    else:
+        return None

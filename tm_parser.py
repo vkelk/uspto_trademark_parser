@@ -254,8 +254,8 @@ def parse_file(filename, file_id):
                 new_file_date = int(re.sub(r"\D", "", filename))
                 db_file_date = int(re.sub(r"\D", "", serial_db['filename']))
                 if new_file_date > db_file_date \
-                        or serial_db['status'] is False \
-                        or (new_file_date >= db_file_date and args.parseall and args.force):
+                    or (serial_db['status'] is False and args.force) \
+                    or (new_file_date >= db_file_date and args.parseall and args.force):
                     for t in ('trademark_app_case_files', 'trademark_app_case_file_event_statements',
                               'trademark_app_case_file_headers', 'trademark_app_case_file_owners',
                               'trademark_app_case_file_statements', 'trademark_app_classifications',
@@ -343,7 +343,7 @@ def main_worker(file):
         if xml_filename is not None:
             inserted_id = dbc.file_insert(file, os.path.basename(xml_filename))
             parse_file(xml_filename, inserted_id)
-    elif file_check['status'] in ['new', 'reparsing', '']:
+    elif file_check['status'] in ['new', 'reparsing']:
         logger.warning('File %s exists into database. Going to process again', file_check['filename'])
         if not os.path.isfile(os.path.join(WORK_DIR, file_check['filename'])):
             xml_filename = download_file(file['url'])
@@ -351,20 +351,23 @@ def main_worker(file):
             xml_filename = file_check['filename']
         parse_file(xml_filename, file_check['id'])
     else:
-        logger.info('File %s is already inserted into database.', file_check['filename'])
+        logger.info('File %s is already inserted into database. Skiping it', file_check['filename'])
         if args.parse:
             logger.info('Nothing to work. Exiting.')
-            sys.exit()
+            exit()
 
 
 def sub_main():
     files_tuple = get_urls(MAIN_URL)
     # single-thread test
-    # for file in files_tuple:
-    #     main_worker(file)
-    # sys.exit()
+    for file in files_tuple:
+        main_worker(file)
+    sys.exit()
     with cf.ThreadPoolExecutor(max_workers=4) as executor:
-        executor.map(main_worker, files_tuple)
+        try:
+            executor.map(main_worker, files_tuple)
+        except Exception:
+            logger.exception('message')
 
 
 logger = create_logger()
