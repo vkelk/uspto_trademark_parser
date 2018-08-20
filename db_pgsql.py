@@ -103,8 +103,8 @@ class Db(object):
         q = 'DELETE FROM %s WHERE serial_number = %s'
         start_time = time.time()
         try:
-            q = self.cur.mogrify(q, (AsIs(table), serial_number))
             cur = self.cnx.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            q = cur.mogrify(q, (AsIs(table), serial_number))
             cur.execute(q)
             rowcount = cur.rowcount
             # self.cnx.commit()
