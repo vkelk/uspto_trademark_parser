@@ -98,7 +98,7 @@ class Db(object):
 
     def delete_serial(self, serial_number, table):
         if serial_number is None or table is None:
-            logging.error('DELETE ERROR: Missing serial_number or table')
+            logging.warning('DELETE ERROR: Missing serial_number or table')
             return None
         q = 'DELETE FROM %s WHERE serial_number = %s'
         start_time = time.time()
@@ -108,7 +108,7 @@ class Db(object):
             cur.execute(q)
             rowcount = cur.rowcount
             # self.cnx.commit()
-            self.logger.warning(
+            self.logger.debug(
                 'Deleted serial_number %s from table %s [%s sec]', 
                 serial_number, table, time.time() - start_time)
         except psycopg2.Error as err:

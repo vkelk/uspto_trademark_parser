@@ -264,16 +264,17 @@ def parse_file(filename, file_id):
                               'trademark_app_madrid_history_events', 'trademark_app_madrid_international_filing_record',
                               'trademark_app_prior_registration_applications', 'trademark_app_us_codes'):
                         dbc.delete_serial(doc_id, t)
+                        logger.warning('[%s] Deleted serial %s from all tables', filename, doc_id)
                         dbc.cnx.commit()
-                    logger.info('Processing existing serial number %s', doc_id)
+                    logger.info('[%s] Processing existing serial number %s', filename, doc_id)
                     parse_case(case, doc_id, file_id, dbc)
             else:
-                logger.info('Processing new serial number %s', doc_id)
+                logger.info('[%s] Processing new serial number %s', filename, doc_id)
                 parse_case(case, doc_id, file_id, dbc)
             case.clear()
     dbc.file_update_status(file_id, 'finished')
     os.remove(filename)
-    logger.info('Finished parsing file %s in [%s sec]', filename, time.time() - file_start_time)
+    logger.info('[%s] Finished parsing file in [%s sec]', filename, time.time() - file_start_time)
 
 
 def create_logger():
