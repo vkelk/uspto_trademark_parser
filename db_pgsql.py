@@ -109,7 +109,7 @@ class Db(object):
             rowcount = cur.rowcount
             # self.cnx.commit()
             self.logger.debug(
-                'Deleted serial_number %s from table %s [%s sec]', 
+                'Deleted serial_number %s from table %s [%s sec]',
                 serial_number, table, time.time() - start_time)
         except psycopg2.Error as err:
             self.logger.error('Delete failed for table_name %s', table)
@@ -132,7 +132,7 @@ class Db(object):
         q = 'INSERT INTO {0} ({1}) values %s RETURNING id'.format(table, columns)
         try:
             cur = self.cnx.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-            execute_values(self.cur, q, values)
+            execute_values(cur, q, values)
             rowcount = cur.rowcount
             # self.cur.execute(q)
             self.cnx.commit()
@@ -142,6 +142,9 @@ class Db(object):
             self.logger.error(err)
             self.cnx.rollback()
             rowcount = None
+        except Exception:
+            self.logger.exception('message')
+            raise
         finally:
             cur.close()
         return rowcount

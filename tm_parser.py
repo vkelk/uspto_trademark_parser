@@ -74,7 +74,7 @@ def parse_case(case, doc_id, file_id, dbc):
                                     'type_code': get_text_or_none(child, 'type-code/text()'),
                                     'text': get_text_or_none(child, 'text/text()')}
             lst.append(case_file_statements)
-        result = dbc.insert_listdict(lst, 'trademark_app_case_file_statements')
+        dbc.insert_listdict(lst, 'trademark_app_case_file_statements')
 
     def parse_event_statements():
         cfes_elements = case.findall('case-file-event-statements/case-file-event-statement')
@@ -87,7 +87,7 @@ def parse_case(case, doc_id, file_id, dbc):
                                           'date': get_text_or_none(child, 'date/text()'),
                                           'number': get_text_or_none(child, 'number/text()')}
             lst.append(case_file_event_statements)
-        result = dbc.insert_listdict(lst, 'trademark_app_case_file_event_statements')
+        dbc.insert_listdict(lst, 'trademark_app_case_file_event_statements')
 
     def parse_prior_registration_applications():
         pra_elements = case.findall('prior-registration-applications/prior-registration-application')
@@ -100,7 +100,7 @@ def parse_case(case, doc_id, file_id, dbc):
                                                                                      'relationship-type/text()'),
                                                'number': get_text_or_none(child, 'number/text()')}
             lst.append(prior_registration_applications)
-        result = dbc.insert_listdict(lst, 'trademark_app_prior_registration_applications')
+        dbc.insert_listdict(lst, 'trademark_app_prior_registration_applications')
 
     def parse_foreign_applications():
         fa_elements = case.findall('foreign-applications/foreign-application')
@@ -115,7 +115,7 @@ def parse_case(case, doc_id, file_id, dbc):
                 search_term = hitem.replace('_', '-') + '/text()'
                 foreign_applications[hitem] = get_text_or_none(child, search_term)
             lst.append(foreign_applications)
-        result = dbc.insert_listdict(lst, 'trademark_app_foreign_applications')
+        dbc.insert_listdict(lst, 'trademark_app_foreign_applications')
 
     def parse_classifications():
         classification_elements = case.findall('classifications/classification')
@@ -135,7 +135,7 @@ def parse_case(case, doc_id, file_id, dbc):
                                       'classification_id': classification_id,
                                       'us_code': subchild.text}
                 lst.append(case_file_us_codes)
-            result = dbc.insert_listdict(lst, 'trademark_app_us_codes')
+            dbc.insert_listdict(lst, 'trademark_app_us_codes')
 
     def parse_correspondents():
         correspondent_elements = case.findall('correspondent')
@@ -148,7 +148,7 @@ def parse_case(case, doc_id, file_id, dbc):
                 search_term = hitem.replace('_', '-') + '/text()'
                 case_file_correspondent[hitem] = get_text_or_none(child, search_term)
             lst.append(case_file_correspondent)
-        result = dbc.insert_listdict(lst, 'trademark_app_correspondents')
+        dbc.insert_listdict(lst, 'trademark_app_correspondents')
 
     def parse_owners():
         cfo_elements = case.findall('case-file-owners/case-file-owner')
@@ -164,7 +164,7 @@ def parse_case(case, doc_id, file_id, dbc):
                 case_file_owners[hitem] = get_text_or_none(child, search_term)
             case_file_owners['nationality'] = get_text_or_none(child, 'nationality/country/text()')
             lst.append(case_file_owners)
-        result = dbc.insert_listdict(lst, 'trademark_app_case_file_owners')
+        dbc.insert_listdict(lst, 'trademark_app_case_file_owners')
 
     def parse_design_searches():
         cfds_elements = case.findall('design-searches/design-search')
@@ -173,7 +173,7 @@ def parse_case(case, doc_id, file_id, dbc):
             case_file_design_searches = {'serial_number': doc_id,
                                          'code': get_text_or_none(child, 'code/text()')}
             lst.append(case_file_design_searches)
-        result = dbc.insert_listdict(lst, 'trademark_app_design_searches')
+        dbc.insert_listdict(lst, 'trademark_app_design_searches')
 
     def parse_international_registration():
         cfir_elements = case.findall('international-registration')
@@ -189,7 +189,7 @@ def parse_case(case, doc_id, file_id, dbc):
                 search_term = hitem.replace('_', '-') + '/text()'
                 case_file_international_registration[hitem] = get_text_or_none(child, search_term)
             lst.append(case_file_international_registration)
-        result = dbc.insert_listdict(lst, 'trademark_app_international_registration')
+        dbc.insert_listdict(lst, 'trademark_app_international_registration')
 
     def parse_madrid_international_filing_record():
         mifr_elements = case.findall('madrid-international-filing-requests/madrid-international-filing-record')
@@ -216,27 +216,47 @@ def parse_case(case, doc_id, file_id, dbc):
                     search_term = hitem.replace('_', '-') + '/text()'
                     madrid_history_events[hitem] = get_text_or_none(subchild, search_term)
                 lst.append(madrid_history_events)
-            result = dbc.insert_listdict(lst, 'trademark_app_madrid_history_events')
+            dbc.insert_listdict(lst, 'trademark_app_madrid_history_events')
 
     start_time = time.time()
-
+    tm = doc_id
     with cf.ThreadPoolExecutor(max_workers=12) as executor:
-        executor.submit(parse_case_files)
-        executor.submit(parse_headers)
-        executor.submit(parse_statements)
-        executor.submit(parse_event_statements)
-        executor.submit(parse_prior_registration_applications)
-        executor.submit(parse_foreign_applications)
-        executor.submit(parse_classifications)
-        executor.submit(parse_correspondents)
-        executor.submit(parse_owners)
-        executor.submit(parse_design_searches)
-        executor.submit(parse_international_registration)
-        executor.submit(parse_madrid_international_filing_record)
+        try:
+            executor.submit(parse_case_files)
+            executor.submit(parse_headers)
+            executor.submit(parse_statements)
+            executor.submit(parse_event_statements)
+            executor.submit(parse_prior_registration_applications)
+            executor.submit(parse_foreign_applications)
+            executor.submit(parse_classifications)
+            executor.submit(parse_correspondents)
+            executor.submit(parse_owners)
+            executor.submit(parse_design_searches)
+            executor.submit(parse_international_registration)
+            executor.submit(parse_madrid_international_filing_record)
+        except KeyboardInterrupt:
+            dbc.cnx.rollback()
+            sys.exit()
+        except SystemExit:
+            dbc.cnx.rollback()
+            sys.exit()
+        except Exception:
+            logger.error('[%s] error while parsing doc_id %s', file_id, doc_id)
+            logger.exception('message')
+            dbc.cnx.rollback()
+            tm = None
+    if tm is not None:
+        dbc.cnx.commit()
+        logger.info(
+            '[%s] Inserted tm %s in [%6.3f sec]', file_id, doc_id, time.time() - start_time
+            )
+    else:
+        logger.warning('[%s] Could not insert %s', file_id, doc_id)
+        raise
 
-    dbc.case_file_update_status(doc_id, 'true')
-    dbc.cnx.commit()
-    logger.info('Inserted case %s in [%s sec]', doc_id, time.time() - start_time)
+    # dbc.case_file_update_status(doc_id, 'true')
+    # dbc.cnx.commit()
+    # logger.info('Inserted case %s in [%s sec]', doc_id, time.time() - start_time)
 
 
 def parse_file(filename, file_id):
@@ -264,17 +284,17 @@ def parse_file(filename, file_id):
                               'trademark_app_madrid_history_events', 'trademark_app_madrid_international_filing_record',
                               'trademark_app_prior_registration_applications', 'trademark_app_us_codes'):
                         dbc.delete_serial(doc_id, t)
-                        logger.warning('[%s] Deleted serial %s from all tables', filename, doc_id)
                         dbc.cnx.commit()
-                    logger.info('[%s] Processing existing serial number %s', filename, doc_id)
+                    logger.warning('[%s] Deleted serial %s from all tables', os.path.basename(filename), doc_id)
+                    logger.info('[%s] Processing existing serial number %s', os.path.basename(filename), doc_id)
                     parse_case(case, doc_id, file_id, dbc)
             else:
-                logger.info('[%s] Processing new serial number %s', filename, doc_id)
+                logger.info('[%s] Processing new serial number %s', os.path.basename(filename), doc_id)
                 parse_case(case, doc_id, file_id, dbc)
             case.clear()
     dbc.file_update_status(file_id, 'finished')
     os.remove(filename)
-    logger.info('[%s] Finished parsing file in [%s sec]', filename, time.time() - file_start_time)
+    logger.info('[%s] Finished parsing file in [%s sec]', os.path.basename(filename), time.time() - file_start_time)
 
 
 def create_logger():
@@ -285,7 +305,7 @@ def create_logger():
     # Windows paths hack
     log_file = log_file.replace('\\', '\\\\')
     ini_file = ini_file.replace('\\', '\\\\')
-    logging.config.fileConfig(ini_file, defaults={'logfilename': log_file})
+    logging.config.fileConfig(ini_file, defaults={'logfilename': log_file}, disable_existing_loggers=False)
     return logging.getLogger(__name__)
 
 
@@ -312,7 +332,7 @@ def download_file(url):
             zip_ref.extractall(WORK_DIR)
             zip_ref.close()
             os.remove(zip_filename)
-        except:
+        except Exception:
             logger.error('UNZIP ERROR. Deleting file %s' % zip_filename)
             os.remove(zip_filename)
     return xml_filename.split('/')[-1]
@@ -361,9 +381,9 @@ def main_worker(file):
 def sub_main():
     files_tuple = get_urls(MAIN_URL)
     # single-thread test
-    for file in files_tuple:
-        main_worker(file)
-    sys.exit()
+    # for file in files_tuple:
+    #     main_worker(file)
+    # sys.exit()
     with cf.ThreadPoolExecutor(max_workers=4) as executor:
         try:
             executor.map(main_worker, files_tuple)
