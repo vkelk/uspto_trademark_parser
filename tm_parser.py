@@ -384,7 +384,7 @@ def sub_main():
     # for file in files_tuple:
     #     main_worker(file)
     # sys.exit()
-    with cf.ThreadPoolExecutor(max_workers=4) as executor:
+    with cf.ThreadPoolExecutor(max_workers=2) as executor:
         try:
             executor.map(main_worker, files_tuple)
         except Exception:
