@@ -1,6 +1,6 @@
 """
-__version__ = '1.1.0'
-__date__ = '2018-08-19'
+__version__ = '1.2.0'
+__date__ = '2018-11-08'
 """
 
 import argparse
@@ -8,6 +8,7 @@ import concurrent.futures as cf
 import logging
 import logging.config
 import os
+from pprint import pprint
 import re
 import requests
 import sys
@@ -220,9 +221,22 @@ def parse_case(case, doc_id, file_id, dbc):
 
     start_time = time.time()
     tm = doc_id
-    with cf.ThreadPoolExecutor(max_workers=12) as executor:
+    try:
+        parse_case_files()
+    except KeyboardInterrupt:
+        dbc.cnx.rollback()
+        sys.exit()
+    except SystemExit:
+        dbc.cnx.rollback()
+        sys.exit()
+    except Exception:
+        logger.error('[%s] error while parsing doc_id %s', file_id, doc_id)
+        logger.exception('message')
+        dbc.cnx.rollback()
+        tm = None
+    with cf.ThreadPoolExecutor(max_workers=11) as executor:
         try:
-            executor.submit(parse_case_files)
+            # executor.submit(parse_case_files)
             executor.submit(parse_headers)
             executor.submit(parse_statements)
             executor.submit(parse_event_statements)
@@ -352,7 +366,7 @@ def get_urls(main_url):
                    'date_string': row.xpath('td[3]//text()')[0]}
             files = (apc,) + files
     if len(files) > 0:
-        return files
+        return sorted(files, key=lambda k: k['date_string'], reverse=True)
     return None
 
 
@@ -384,7 +398,7 @@ def sub_main():
     # for file in files_tuple:
     #     main_worker(file)
     # sys.exit()
-    with cf.ThreadPoolExecutor(max_workers=2) as executor:
+    with cf.ThreadPoolExecutor(max_workers=6) as executor:
         try:
             executor.map(main_worker, files_tuple)
         except Exception:
