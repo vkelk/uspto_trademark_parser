@@ -326,7 +326,7 @@ def create_logger():
 def download_file(url):
     zip_filename = os.path.join(WORK_DIR, url.split('/')[-1])
     if 'apc18840407-' in zip_filename:
-        xml_filename = zip_filename.replace('apc18840407-', 'apc').replace('zip', 'xml')
+        xml_filename = zip_filename.replace('apc18840407-20', 'apc').replace('zip', 'xml')
     else:
         xml_filename = zip_filename.replace('zip', 'xml')
     if os.path.isfile(zip_filename) or os.path.isfile(xml_filename):
@@ -342,7 +342,7 @@ def download_file(url):
                 if chunk:  # filter out keep-alive new chunks
                     f.write(chunk)
         r.close()
-        logger.debug('File %s downloaded in [%s sec].', zip_filename, time.time() - start_time)
+        logger.info('File %s downloaded in [%s sec].', zip_filename, time.time() - start_time)
     if not os.path.isfile(xml_filename) and os.path.isfile(zip_filename):
         try:
             zip_ref = zipfile.ZipFile(zip_filename, 'r')
@@ -352,6 +352,7 @@ def download_file(url):
         except Exception:
             logger.error('UNZIP ERROR. Deleting file %s' % zip_filename)
             os.remove(zip_filename)
+    logger.info('XMLfilename %s', xml_filename)
     return xml_filename.split('/')[-1]
 
 

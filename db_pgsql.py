@@ -29,7 +29,7 @@ class Db(object):
     def file_check(self, file):
         zip_filename = file['url'].split('/')[-1]
         if 'apc18840407-' in zip_filename:
-            xml_filename = zip_filename.replace('apc18840407-', 'apc').replace('zip', 'xml')
+            xml_filename = zip_filename.replace('apc18840407-20', 'apc').replace('zip', 'xml')
         else:
             xml_filename = zip_filename.replace('zip', 'xml')
         q = "SELECT id, status, filename, date_string FROM trademark_fileinfo WHERE url = %s or filename = %s"
