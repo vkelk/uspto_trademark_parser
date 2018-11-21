@@ -325,7 +325,10 @@ def create_logger():
 
 def download_file(url):
     zip_filename = os.path.join(WORK_DIR, url.split('/')[-1])
-    xml_filename = zip_filename.replace('zip', 'xml')
+    if 'apc18840407-' in zip_filename:
+        xml_filename = zip_filename.replace('apc18840407-', 'apc').replace('zip', 'xml')
+    else:
+        xml_filename = zip_filename.replace('zip', 'xml')
     if os.path.isfile(zip_filename) or os.path.isfile(xml_filename):
         logger.debug('File already exists.')
     else:
