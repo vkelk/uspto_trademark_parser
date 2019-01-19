@@ -384,7 +384,7 @@ def main_worker(file):
         if xml_filename is not None:
             inserted_id = dbc.file_insert(file, os.path.basename(xml_filename))
             parse_file(xml_filename, inserted_id)
-    elif file_check['status'] in ['new', 'reparsing']:
+    elif file_check['status'] in ['new', 'reparsing'] or args.force:
         logger.warning('File %s exists into database. Going to process again', file_check['filename'])
         if not os.path.isfile(os.path.join(WORK_DIR, file_check['filename'])):
             xml_filename = download_file(file['url'])
