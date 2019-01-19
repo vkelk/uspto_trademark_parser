@@ -74,7 +74,7 @@ class Db(object):
         return result
 
     def serial_get(self, serial_number, file_id):
-        q = "SELECT cf.id, cf.created, filename, cf.status FROM trademark_app_case_files cf " \
+        q = "SELECT cf.id, cf.created, filename, cf.status, transaction_date FROM trademark_app_case_files cf " \
             "INNER JOIN trademark_fileinfo fi on fi.id = cf.file_id WHERE serial_number = %s"
         cur = self.cnx.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute(q, (serial_number,))

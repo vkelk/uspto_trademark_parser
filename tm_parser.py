@@ -285,11 +285,13 @@ def parse_file(filename, file_id):
             doc_id = int(get_text_or_none(case, 'serial-number/text()'))
             serial_db = dbc.serial_get(doc_id, file_id)
             if serial_db is not None:
-                new_file_date = int(re.sub(r"\D", "", filename))
-                db_file_date = int(re.sub(r"\D", "", serial_db['filename']))
-                if new_file_date > db_file_date \
+                # new_file_date = int(re.sub(r"\D", "", filename))
+                transaction_date = get_text_or_none(case, 'transaction-date/text()')
+                # db_file_date = int(re.sub(r"\D", "", serial_db['filename']))
+                # if new_file_date > db_file_date \
+                if transaction_date > serial_db['transaction_date'] \
                     or (serial_db['status'] is False and args.force) \
-                    or (new_file_date >= db_file_date and args.parseall and args.force):
+                    or (transaction_date >= serial_db['transaction_date'] and args.parseall and args.force):
                     for t in ('trademark_app_case_files', 'trademark_app_case_file_event_statements',
                               'trademark_app_case_file_headers', 'trademark_app_case_file_owners',
                               'trademark_app_case_file_statements', 'trademark_app_classifications',
