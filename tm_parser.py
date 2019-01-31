@@ -5,6 +5,7 @@ __date__ = '2018-11-08'
 
 import argparse
 import concurrent.futures as cf
+from datetime import datetime
 import logging
 import logging.config
 import os
@@ -285,13 +286,20 @@ def parse_file(filename, file_id):
             doc_id = int(get_text_or_none(case, 'serial-number/text()'))
             serial_db = dbc.serial_get(doc_id, file_id)
             if serial_db is not None:
-                # new_file_date = int(re.sub(r"\D", "", filename))
-                transaction_date = get_text_or_none(case, 'transaction-date/text()')
-                # db_file_date = int(re.sub(r"\D", "", serial_db['filename']))
-                # if new_file_date > db_file_date \
-                if transaction_date > serial_db['transaction_date'] \
+                transaction_date_string = get_text_or_none(case, 'transaction-date/text()')
+                if transaction_date_string:
+                    transaction_date = datetime.strptime(transaction_date_string, '%Y%m%d').date()
+                else:
+                    logger.warning('Missing transaction date in XML')
+                    transaction_date = None
+                if serial_db['transaction_date'] is not None and serial_db['transaction_date'] != '':
+                    db_transaction_date = datetime.strptime(serial_db['transaction_date'], '%Y%m%d').date()
+                else:
+                    logger.warning('Missing transaction date in database')
+                    db_transaction_date = None
+                if transaction_date > db_transaction_date \
                     or (serial_db['status'] is False and args.force) \
-                    or (transaction_date >= serial_db['transaction_date'] and args.parseall and args.force):
+                    or (transaction_date > db_transaction_date and args.parseall and args.force):
                     for t in ('trademark_app_case_files', 'trademark_app_case_file_event_statements',
                               'trademark_app_case_file_headers', 'trademark_app_case_file_owners',
                               'trademark_app_case_file_statements', 'trademark_app_classifications',
@@ -301,7 +309,7 @@ def parse_file(filename, file_id):
                               'trademark_app_prior_registration_applications', 'trademark_app_us_codes'):
                         dbc.delete_serial(doc_id, t)
                         dbc.cnx.commit()
-                    logger.warning('[%s] Deleted serial %s from all tables', os.path.basename(filename), doc_id)
+                    logger.info('[%s] Deleted serial %s from all tables', os.path.basename(filename), doc_id)
                     logger.info('[%s] Processing existing serial number %s', os.path.basename(filename), doc_id)
                     parse_case(case, doc_id, file_id, dbc)
             else:
@@ -383,14 +391,22 @@ def main_worker(file):
         xml_filename = download_file(file['url'])
         if xml_filename is not None:
             inserted_id = dbc.file_insert(file, os.path.basename(xml_filename))
-            parse_file(xml_filename, inserted_id)
+            try:
+                parse_file(xml_filename, inserted_id)
+            except Exception:
+                logger.exception('message')
+                raise
     elif file_check['status'] in ['new', 'reparsing'] or args.force:
         logger.warning('File %s exists into database. Going to process again', file_check['filename'])
         if not os.path.isfile(os.path.join(WORK_DIR, file_check['filename'])):
             xml_filename = download_file(file['url'])
         else:
             xml_filename = file_check['filename']
-        parse_file(xml_filename, file_check['id'])
+        try:
+            parse_file(xml_filename, file_check['id'])
+        except Exception:
+            logger.exception('message')
+            raise
     else:
         logger.info('File %s is already inserted into database. Skiping it', file_check['filename'])
         if args.parse:
@@ -404,7 +420,7 @@ def sub_main():
     # for file in files_tuple:
     #     main_worker(file)
     # sys.exit()
-    with cf.ThreadPoolExecutor(max_workers=6) as executor:
+    with cf.ThreadPoolExecutor(max_workers=12) as executor:
         try:
             executor.map(main_worker, files_tuple)
         except Exception:
